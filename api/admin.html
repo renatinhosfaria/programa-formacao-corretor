@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ranking Candidatos | Programa Formação Corretor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            color: #333;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: white;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .stat-icon.trophy { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.users { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.chart { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .stat-icon.target { background: linear-gradient(135deg, #fa709a, #fee140); }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .filter-group select, .filter-group input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e7ff;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            background: white;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .ranking-table {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+        
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: #f8fafc;
+            padding: 1.2rem;
+            text-align: left;
+            font-weight: 700;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table td {
+            padding: 1.2rem;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.95rem;
+        }
+        
+        .table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .ranking-position {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .ranking-medal {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+        
+        .medal-1 { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #333; }
+        .medal-2 { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
+        .medal-3 { background: linear-gradient(135deg, #cd7f32, #daa520); }
+        .medal-default { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+        
+        .candidate-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .candidate-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .candidate-details {
+            flex: 1;
+        }
+        
+        .candidate-name {
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+        
+        .candidate-name:hover {
+            color: #667eea;
+        }
+        
+        .candidate-contact {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .score-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .score-number {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .score-bar {
+            width: 80px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .classification {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .classification-excelente { background: #d1fae5; color: #065f46; }
+        .classification-bom { background: #dbeafe; color: #1e40af; }
+        .classification-regular { background: #fef3c7; color: #92400e; }
+        .classification-insuficiente { background: #fee2e2; color: #991b1b; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 2rem auto;
+            border-radius: 20px;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+        
+        .modal-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            overflow-x: auto;
+        }
+        
+        .modal-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .modal-tab:hover {
+            color: #374151;
+            background: #f1f5f9;
+        }
+        
+        .modal-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .modal-section {
+            display: none;
+        }
+        
+        .modal-section.active {
+            display: block;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .info-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        
+        .score-breakdown {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .score-item {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .score-question {
+            font-size: 0.9rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .score-points {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .points-earned {
+            font-weight: 700;
+            color: #059669;
+        }
+        
+        .points-total {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #f87171;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: white;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .ranking-table {
+                overflow-x: auto;
+            }
+            
+            .table {
+                min-width: 700px;
+            }
+            
+            .modal-content {
+                margin: 1rem;
+                max-height: 95vh;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-trophy"></i> Dashboard - Ranking de Candidatos</h1>
+    </div>
+    
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="ranking">
+                <i class="fas fa-trophy"></i> Ranking
+            </div>
+            <div class="tab" data-tab="inscricoes">
+                <i class="fas fa-list"></i> Inscrições
+            </div>
+        </div>
+
+        <!-- Tab: Ranking -->
+        <div id="ranking-content" class="tab-content active">
+            <!-- Estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon trophy">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="top-score">-</div>
+                            <div class="stat-label">Maior Pontuação</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="total-candidates">-</div>
+                            <div class="stat-label">Total de Candidatos</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon chart">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="avg-score">-</div>
+                            <div class="stat-label">Pontuação Média</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon target">
+                            <i class="fas fa-target"></i>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="excellent-count">-</div>
+                            <div class="stat-label">Classificação Excelente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="classification-filter"><i class="fas fa-filter"></i> Classificação:</label>
+                    <select id="classification-filter">
+                        <option value="">Todas</option>
+                        <option value="Excelente">Excelente</option>
+                        <option value="Bom">Bom</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Insuficiente">Insuficiente</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="score-filter">Pontuação mínima:</label>
+                    <input type="number" id="score-filter" min="0" max="44" placeholder="0">
+                </div>
+                <button class="btn btn-primary" onclick="carregarRanking()">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+            </div>
+
+            <div id="error-message"></div>
+
+            <!-- Tabela de Ranking -->
+            <div class="ranking-table">
+                <div class="table-header">
+                    <h2 class="table-title">
+                        <i class="fas fa-crown"></i> Ranking de Candidatos
+                    </h2>
+                </div>
+                
+                <div id="ranking-loading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <div>Carregando ranking...</div>
+                </div>
+                
+                <table class="table" id="ranking-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-medal"></i> Posição</th>
+                            <th><i class="fas fa-user"></i> Candidato</th>
+                            <th><i class="fas fa-star"></i> Pontuação</th>
+                            <th><i class="fas fa-chart-pie"></i> Percentual</th>
+                            <th><i class="fas fa-tag"></i> Classificação</th>
+                            <th><i class="fas fa-calendar"></i> Data</th>
+                            <th><i class="fas fa-trash"></i> Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Inscrições -->
+        <div id="inscricoes-content" class="tab-content">
+            <div class="ranking-table">
+                <div class="table-header">
+                    <h2 class="table-title">
+                        <i class="fas fa-list"></i> Todas as Inscrições
+                    </h2>
+                </div>
+                
+                <div id="inscricoes-loading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <div>Carregando inscrições...</div>
+                </div>
+                
+                <table class="table" id="inscricoes-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>WhatsApp</th>
+                            <th>Instagram</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inscricoes-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para detalhes do candidato -->
+    <div id="candidate-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-candidate-name">
+                    <i class="fas fa-user-circle"></i> Detalhes do Candidato
+                </h2>
+                <button class="close" onclick="fecharModal()">&times;</button>
+            </div>
+            
+            <div class="modal-tabs">
+                <div class="modal-tab active" data-section="dados-pessoais">
+                    <i class="fas fa-id-card"></i> Dados Pessoais
+                </div>
+                <div class="modal-tab" data-section="info-pessoais">
+                    <i class="fas fa-user"></i> Info. Pessoais
+                </div>
+                <div class="modal-tab" data-section="academicas">
+                    <i class="fas fa-graduation-cap"></i> Acadêmicas
+                </div>
+                <div class="modal-tab" data-section="motivacao">
+                    <i class="fas fa-heart"></i> Motivação
+                </div>
+                <div class="modal-tab" data-section="perfil-profissional">
+                    <i class="fas fa-chart-bar"></i> Perfil + Pontuação
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Dados Pessoais -->
+                <div id="dados-pessoais" class="modal-section active">
+                    <div class="info-grid" id="dados-pessoais-content">
+                    </div>
+                </div>
+                
+                <!-- Informações Pessoais -->
+                <div id="info-pessoais" class="modal-section">
+                    <div class="info-grid" id="info-pessoais-content">
+                    </div>
+                </div>
+                
+                <!-- Informações Acadêmicas -->
+                <div id="academicas" class="modal-section">
+                    <div class="info-grid" id="academicas-content">
+                    </div>
+                </div>
+                
+                <!-- Motivação -->
+                <div id="motivacao" class="modal-section">
+                    <div id="motivacao-content">
+                    </div>
+                </div>
+                
+                <!-- Perfil Profissional + Pontuação -->
+                <div id="perfil-profissional" class="modal-section">
+                    <div id="perfil-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let rankingData = [];
+        let inscricoesData = [];
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarRanking();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Tabs principais
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const tabName = e.target.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+            
+            // Tabs do modal
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const sectionName = e.target.getAttribute('data-section');
+                    switchModalSection(sectionName);
+                });
+            });
+            
+            // Filtros
+            document.getElementById('classification-filter').addEventListener('change', filtrarRanking);
+            document.getElementById('score-filter').addEventListener('input', filtrarRanking);
+            
+            // Fechar modal clicando fora
+            window.onclick = function(event) {
+                const modal = document.getElementById('candidate-modal');
+                if (event.target === modal) {
+                    fecharModal();
+                }
+            }
+        }
+        
+        function switchTab(tabName) {
+            // Atualizar tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Atualizar conteúdo
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${tabName}-content`).classList.add('active');
+            
+            // Carregar dados se necessário
+            if (tabName === 'inscricoes' && inscricoesData.length === 0) {
+                carregarInscricoes();
+            }
+        }
+        
+        function switchModalSection(sectionName) {
+            document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+            
+            document.querySelectorAll('.modal-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionName).classList.add('active');
+        }
+        
+        async function carregarRanking() {
+            try {
+                document.getElementById('ranking-loading').style.display = 'block';
+                document.getElementById('ranking-table').style.display = 'none';
+                document.getElementById('error-message').innerHTML = '';
+                
+                const response = await fetch('/api/admin/inscricoes-ranking');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar ranking');
+                }
+                
+                const data = await response.json();
+                rankingData = data.candidatos;
+                atualizarEstatisticas(data.estatisticas);
+                renderizarRanking();
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('error-message').innerHTML = 
+                    `<div class="error"><i class="fas fa-exclamation-circle"></i> Erro ao carregar ranking: ${error.message}</div>`;
+            } finally {
+                document.getElementById('ranking-loading').style.display = 'none';
+            }
+        }
+        
+        async function carregarInscricoes() {
+            try {
+                document.getElementById('inscricoes-loading').style.display = 'block';
+                document.getElementById('inscricoes-table').style.display = 'none';
+                
+                const response = await fetch('/api/admin/inscricoes');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar inscrições');
+                }
+                
+                inscricoesData = await response.json();
+                renderizarInscricoes();
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('error-message').innerHTML = 
+                    `<div class="error"><i class="fas fa-exclamation-circle"></i> Erro ao carregar inscrições: ${error.message}</div>`;
+            } finally {
+                document.getElementById('inscricoes-loading').style.display = 'none';
+            }
+        }
+        
+        function atualizarEstatisticas(stats) {
+            document.getElementById('top-score').textContent = stats.top_3.length > 0 ? stats.top_3[0].pontuacao : '0';
+            document.getElementById('total-candidates').textContent = stats.total_candidatos;
+            document.getElementById('avg-score').textContent = stats.pontuacao_media.toFixed(1);
+            document.getElementById('excellent-count').textContent = stats.distribuicao_classificacao.Excelente || 0;
+            // Ajusta dinamicamente o limite máximo do filtro de pontuação
+            const scoreInput = document.getElementById('score-filter');
+            if (stats.pontuacao_maxima_possivel) {
+                scoreInput.max = String(stats.pontuacao_maxima_possivel);
+            }
+        }
+        
+        function renderizarRanking() {
+            const tbody = document.getElementById('ranking-tbody');
+            tbody.innerHTML = '';
+            
+            let candidatosFiltrados = [...rankingData];
+            
+            // Aplicar filtros
+            const classificationFilter = document.getElementById('classification-filter').value;
+            const scoreFilter = document.getElementById('score-filter').value;
+            
+            if (classificationFilter) {
+                candidatosFiltrados = candidatosFiltrados.filter(c => c.classificacao === classificationFilter);
+            }
+            
+            if (scoreFilter) {
+                candidatosFiltrados = candidatosFiltrados.filter(c => c.pontuacao_total >= parseInt(scoreFilter));
+            }
+            
+            if (candidatosFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-search"></i><div>Nenhum candidato encontrado com os filtros aplicados</div></td></tr>';
+                document.getElementById('ranking-table').style.display = 'table';
+                return;
+            }
+            
+            candidatosFiltrados.forEach((candidato, index) => {
+                const row = document.createElement('tr');
+                
+                // Posição
+                const medalClass = index < 3 ? `medal-${index + 1}` : 'medal-default';
+                const medalIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1;
+                
+                // Avatar com iniciais
+                const iniciais = candidato.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                
+                // Cor da barra de progresso baseada na pontuação
+                let barColor = '#ef4444'; // vermelho
+                if (candidato.percentual >= 85) barColor = '#10b981'; // verde
+                else if (candidato.percentual >= 70) barColor = '#3b82f6'; // azul
+                else if (candidato.percentual >= 50) barColor = '#f59e0b'; // amarelo
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="ranking-position">
+                            <div class="ranking-medal ${medalClass}">${medalIcon}</div>
+                            ${candidato.ranking_posicao}º
+                        </div>
+                    </td>
+                    <td>
+                        <div class="candidate-info">
+                            <div class="candidate-avatar">${iniciais}</div>
+                            <div class="candidate-details">
+                                <div class="candidate-name" onclick="verDetalhes(${candidato.id})">${candidato.nome}</div>
+                                <div class="candidate-contact">${candidato.whatsapp} • ${candidato.instagram}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="score-display">
+                            <div class="score-number">${candidato.pontuacao_total}/${candidato.pontuacao_maxima}</div>
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: ${candidato.percentual}%; background: ${barColor};"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>${candidato.percentual}%</strong>
+                    </td>
+                    <td>
+                        <span class="classification classification-${candidato.classificacao.toLowerCase()}">${candidato.classificacao}</span>
+                    </td>
+                    <td>${new Date(candidato.created_at).toLocaleDateString('pt-BR')}</td>
+                    <td>
+                        <button class="btn" style="background:#fee2e2;color:#991b1b" onclick="confirmarExclusao(${candidato.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('ranking-table').style.display = 'table';
+        }
+        
+        function renderizarInscricoes() {
+            const tbody = document.getElementById('inscricoes-tbody');
+            tbody.innerHTML = '';
+            
+            inscricoesData.forEach(inscricao => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${inscricao.id}</td>
+                    <td><span class="candidate-name" onclick="verDetalhes(${inscricao.id})">${inscricao.nome}</span></td>
+                    <td>${inscricao.whatsapp}</td>
+                    <td>${inscricao.instagram}</td>
+                    <td><span class="classification classification-${(inscricao.status || 'pendente').toLowerCase()}">${inscricao.status || 'Pendente'}</span></td>
+                    <td>${new Date(inscricao.created_at).toLocaleDateString('pt-BR')}</td>
+                    <td>
+                        <button class="btn" style="background:#fee2e2;color:#991b1b" onclick="confirmarExclusao(${inscricao.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('inscricoes-table').style.display = 'table';
+        }
+        
+        function filtrarRanking() {
+            renderizarRanking();
+        }
+        
+        function verDetalhes(id) {
+            // Buscar candidato nos dados do ranking ou inscrições
+            let candidato = rankingData.find(c => c.id === id);
+            if (!candidato) {
+                candidato = inscricoesData.find(c => c.id === id);
+            }
+            
+            if (!candidato) return;
+            
+            // Atualizar título do modal
+            document.getElementById('modal-candidate-name').innerHTML = 
+                `<i class="fas fa-user-circle"></i> ${candidato.nome}`;
+            
+            // Preencher seções do modal
+            preencherDadosPessoais(candidato);
+            preencherInfoPessoais(candidato);
+            preencherAcademicas(candidato);
+            preencherMotivacao(candidato);
+            preencherPerfilProfissional(candidato);
+            
+            // Mostrar modal
+            document.getElementById('candidate-modal').style.display = 'block';
+        }
+        
+        function calcularIdade(dataNascimento) {
+            const hoje = new Date();
+            const nascimento = new Date(dataNascimento);
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const diferenca = hoje.getMonth() - nascimento.getMonth();
+            
+            if (diferenca < 0 || (diferenca === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            
+            return idade;
+        }
+
+        function preencherDadosPessoais(candidato) {
+            const content = document.getElementById('dados-pessoais-content');
+            const idade = calcularIdade(candidato.nascimento);
+            
+            content.innerHTML = `
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-user"></i> Nome Completo</div>
+                    <div class="info-value">${candidato.nome}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-phone"></i> WhatsApp</div>
+                    <div class="info-value">${candidato.whatsapp}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-calendar"></i> Data de Nascimento</div>
+                    <div class="info-value">${new Date(candidato.nascimento).toLocaleDateString('pt-BR')} (${idade} anos)</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fab fa-instagram"></i> Instagram</div>
+                    <div class="info-value">${candidato.instagram}</div>
+                </div>
+            `;
+        }
+        
+        function preencherInfoPessoais(candidato) {
+            const content = document.getElementById('info-pessoais-content');
+            content.innerHTML = `
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-heart"></i> Relacionamento</div>
+                    <div class="info-value">${candidato.relacionamento}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-baby"></i> Tem Filhos</div>
+                    <div class="info-value">${candidato.tem_filho}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-pray"></i> Religião</div>
+                    <div class="info-value">${candidato.religiao}${candidato.qual_religiao ? ' - ' + candidato.qual_religiao : ''}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-map-marker-alt"></i> Cidade de Nascimento</div>
+                    <div class="info-value">${candidato.cidade_nascimento}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-home"></i> Cidade onde Mora</div>
+                    <div class="info-value">${candidato.cidade_mora}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-users"></i> Com quem Mora</div>
+                    <div class="info-value">${candidato.com_quem_mora}</div>
+                </div>
+            `;
+        }
+        
+        function preencherAcademicas(candidato) {
+            const content = document.getElementById('academicas-content');
+            
+            let academicasHtml = '';
+            
+            // Usar os campos corretos baseados na estrutura atual
+            if (candidato.formacao_academica) {
+                academicasHtml += `
+                    <div class="info-card">
+                        <div class="info-label"><i class="fas fa-graduation-cap"></i> Formação Acadêmica</div>
+                        <div class="info-value">${candidato.formacao_academica}</div>
+                    </div>
+                `;
+                
+                if (candidato.status_formacao) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-check-circle"></i> Status da Formação</div>
+                            <div class="info-value">${candidato.status_formacao}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.instituicao) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-university"></i> Instituição</div>
+                            <div class="info-value">${candidato.instituicao}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.curso) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-book"></i> Curso</div>
+                            <div class="info-value">${candidato.curso}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.periodo_atual) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-calendar-alt"></i> Período Atual</div>
+                            <div class="info-value">${candidato.periodo_atual}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.modalidade) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-laptop"></i> Modalidade</div>
+                            <div class="info-value">${candidato.modalidade}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.turno) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-clock"></i> Turno</div>
+                            <div class="info-value">${candidato.turno}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                // Fallback para campos antigos se existirem
+                academicasHtml = `
+                    <div class="info-card">
+                        <div class="info-label"><i class="fas fa-graduation-cap"></i> Universidade</div>
+                        <div class="info-value">${candidato.universidade || 'Não informado'}</div>
+                    </div>
+                `;
+                
+                if (candidato.nome_universidade) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-university"></i> Nome da Universidade</div>
+                            <div class="info-value">${candidato.nome_universidade}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.curso) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-book"></i> Curso</div>
+                            <div class="info-value">${candidato.curso}</div>
+                        </div>
+                    `;
+                }
+                
+                if (candidato.periodo_estudo) {
+                    academicasHtml += `
+                        <div class="info-card">
+                            <div class="info-label"><i class="fas fa-clock"></i> Período de Estudo</div>
+                            <div class="info-value">${candidato.periodo_estudo}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            content.innerHTML = academicasHtml || '<div class="info-card"><div class="info-value">Informações acadêmicas não disponíveis</div></div>';
+        }
+        
+        function preencherMotivacao(candidato) {
+            const content = document.getElementById('motivacao-content');
+            content.innerHTML = `
+                <div class="info-card" style="margin-bottom: 1.5rem;">
+                    <div class="info-label"><i class="fas fa-heart"></i> Por que deseja ser corretor de imóveis?</div>
+                    <div class="info-value" style="white-space: pre-wrap; margin-top: 0.5rem;">${candidato.motivo_corretor || 'Não informado'}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label"><i class="fas fa-chart-line"></i> O que sabe sobre o mercado imobiliário?</div>
+                    <div class="info-value" style="white-space: pre-wrap; margin-top: 0.5rem;">${candidato.conhece_mercado || 'Não informado'}</div>
+                </div>
+            `;
+        }
+        
+        function preencherPerfilProfissional(candidato) {
+            const content = document.getElementById('perfil-content');
+            
+            if (!candidato.detalhes_pontuacao) {
+                content.innerHTML = '<div class="info-card"><div class="info-value">Dados de pontuação não disponíveis</div></div>';
+                return;
+            }
+            
+            const perguntas = {
+                'prefere_trabalho': 'Você prefere trabalhar individualmente ou em equipe?',
+                'lida_feedback': 'Como você lida com feedback construtivo?',
+                'resolve_conflito': 'Como você resolveria um conflito entre colegas de trabalho?',
+                'importante_ambiente': 'O que você considera mais importante em um ambiente profissional?',
+                'organizacao': 'Como você se mantém organizado(a) no trabalho?',
+                'pressao': 'Qual é a sua opinião sobre trabalhar sob pressão?',
+                'abordagem_indeciso': 'Qual é a sua abordagem ao lidar com clientes indecisos na compra de um imóvel?',
+                'abordagem_cliente': 'Como você abordaria um potencial cliente que demonstra interesse em comprar um imóvel?',
+                'mostrar_imovel': 'O que você considera mais importante ao mostrar um imóvel para um cliente?',
+                'gerenciar_tempo': 'Como você gerenciaria seu tempo ao lidar com múltiplos clientes interessados em imóveis diferentes?',
+                'comunicacao': 'Como você descreveria seu estilo de comunicação?',
+                'motivacao_ambiente': 'Como você se mantém motivado(a) em um ambiente de trabalho desafiador?'
+            };
+            
+            // Resumo da pontuação
+            let resumoHtml = `
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; text-align: center;">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Pontuação Total</h3>
+                    <div style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">${candidato.pontuacao_total || 0}/${candidato.pontuacao_maxima || 0}</div>
+                    <div style="font-size: 1.1rem; opacity: 0.9;">${candidato.percentual || 0}% • ${candidato.classificacao || 'N/A'}</div>
+                </div>
+            `;
+            
+            // Detalhamento das respostas
+            resumoHtml += '<div class="score-breakdown">';
+            
+            Object.keys(perguntas).forEach(campo => {
+                const detalhe = candidato.detalhes_pontuacao[campo];
+                if (detalhe) {
+                    resumoHtml += `
+                        <div class="score-item">
+                            <div class="score-question">${perguntas[campo]}</div>
+                            <div class="score-points">
+                                <span class="points-earned">${detalhe.pontos}</span>
+                                <span class="points-total">/${detalhe.maxPontos}</span>
+                            </div>
+                        </div>
+                        <div style="margin-left: 1rem; margin-bottom: 1rem; color: #6b7280; font-style: italic;">
+                            "${detalhe.resposta}"
+                        </div>
+                    `;
+                }
+            });
+            
+            // Adicionar resposta sobre decisão rápida se existir
+            if (candidato.decisao_rapida) {
+                resumoHtml += `
+                    <div class="info-card" style="margin-top: 1.5rem;">
+                        <div class="info-label"><i class="fas fa-lightning-bolt"></i> Situação de decisão rápida</div>
+                        <div class="info-value" style="white-space: pre-wrap; margin-top: 0.5rem;">${candidato.decisao_rapida}</div>
+                    </div>
+                `;
+            }
+            
+            resumoHtml += '</div>';
+            
+            content.innerHTML = resumoHtml;
+        }
+        
+        function fecharModal() {
+            document.getElementById('candidate-modal').style.display = 'none';
+            
+            // Resetar para primeira aba
+            switchModalSection('dados-pessoais');
+        }
+
+        async function confirmarExclusao(id) {
+            const ok = confirm('Tem certeza que deseja excluir este candidato? Esta ação não pode ser desfeita.');
+            if (!ok) return;
+            try {
+                const resp = await fetch(`/api/admin/inscricoes/${id}`, { method: 'DELETE' });
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({}));
+                    throw new Error(data.message || 'Falha ao excluir');
+                }
+                rankingData = rankingData.filter(c => c.id !== id);
+                inscricoesData = inscricoesData.filter(c => c.id !== id);
+                renderizarRanking();
+                if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'inscricoes') {
+                    renderizarInscricoes();
+                }
+                document.getElementById('candidate-modal').style.display = 'none';
+                alert('Candidato excluído com sucesso.');
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao excluir candidato: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
